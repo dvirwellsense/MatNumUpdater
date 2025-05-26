@@ -1,0 +1,10 @@
+C:\Users\dvirs\source\repos\MatNumUpdater\bin\Debug\MatNumUpdater.exe.config
+C:\Users\dvirs\source\repos\MatNumUpdater\bin\Debug\MatNumUpdater.exe
+C:\Users\dvirs\source\repos\MatNumUpdater\bin\Debug\MatNumUpdater.pdb
+C:\Users\dvirs\source\repos\MatNumUpdater\obj\Debug\MatNumUpdater.csproj.AssemblyReference.cache
+C:\Users\dvirs\source\repos\MatNumUpdater\obj\Debug\MatNumUpdater.Form1.resources
+C:\Users\dvirs\source\repos\MatNumUpdater\obj\Debug\MatNumUpdater.Properties.Resources.resources
+C:\Users\dvirs\source\repos\MatNumUpdater\obj\Debug\MatNumUpdater.csproj.GenerateResource.cache
+C:\Users\dvirs\source\repos\MatNumUpdater\obj\Debug\MatNumUpdater.csproj.CoreCompileInputs.cache
+C:\Users\dvirs\source\repos\MatNumUpdater\obj\Debug\MatNumUpdater.exe
+C:\Users\dvirs\source\repos\MatNumUpdater\obj\Debug\MatNumUpdater.pdb

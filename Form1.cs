@@ -65,7 +65,7 @@ namespace MatNumUpdater
                     try
                     {
                         string messageToSend = "MatNum," + text;
-                        serialPort.WriteLine(messageToSend);
+                        serialPort.Write(messageToSend);
                         textBoxInput.Clear();
                     }
                     catch (Exception ex)

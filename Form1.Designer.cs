@@ -20,8 +20,8 @@
             this.comboBoxPorts = new System.Windows.Forms.ComboBox();
             this.buttonConnect = new System.Windows.Forms.Button();
             this.labelPort = new System.Windows.Forms.Label();
-            this.labelTitle = new System.Windows.Forms.Label();
-            this.labelCurrentMatNumTitle = new System.Windows.Forms.Label();
+            this.Title = new System.Windows.Forms.Label();
+            this.textBoxLog = new System.Windows.Forms.TextBox();
             this.labelCurrentMatNum = new System.Windows.Forms.Label();
 
             this.SuspendLayout();
@@ -29,7 +29,7 @@
             // 
             // textBoxInput
             // 
-            this.textBoxInput.Location = new System.Drawing.Point(30, 150);
+            this.textBoxInput.Location = new System.Drawing.Point(30, 130);
             this.textBoxInput.Name = "textBoxInput";
             this.textBoxInput.Size = new System.Drawing.Size(510, 30);
             this.textBoxInput.TabIndex = 3;
@@ -39,7 +39,7 @@
             // 
             this.buttonSend.BackColor = System.Drawing.Color.LightGreen;
             this.buttonSend.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buttonSend.Location = new System.Drawing.Point(180, 200);
+            this.buttonSend.Location = new System.Drawing.Point(180, 180);
             this.buttonSend.Name = "buttonSend";
             this.buttonSend.Size = new System.Drawing.Size(240, 40);
             this.buttonSend.TabIndex = 4;
@@ -78,50 +78,49 @@
             this.labelPort.Text = "Select Port:";
 
             // 
-            // labelTitle
+            // Title
             // 
-            this.labelTitle.AutoSize = true;
-            this.labelTitle.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            this.labelTitle.Location = new System.Drawing.Point(180, 20);
-            this.labelTitle.Name = "labelTitle";
-            this.labelTitle.Size = new System.Drawing.Size(215, 32);
-            this.labelTitle.TabIndex = 0;
-            this.labelTitle.Text = "MatNum Updater";
+            this.Title.AutoSize = true;
+            this.Title.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.Title.Location = new System.Drawing.Point(180, 20);
+            this.Title.Name = "Title";
+            this.Title.Size = new System.Drawing.Size(215, 32);
+            this.Title.TabIndex = 0;
+            this.Title.Text = "MatNum Updater";
 
             // 
-            // labelCurrentMatNumTitle
+            // textBoxLog
             // 
-            this.labelCurrentMatNumTitle.AutoSize = true;
-            this.labelCurrentMatNumTitle.Location = new System.Drawing.Point(30, 250);
-            this.labelCurrentMatNumTitle.Name = "labelCurrentMatNumTitle";
-            this.labelCurrentMatNumTitle.Size = new System.Drawing.Size(168, 23);
-            this.labelCurrentMatNumTitle.TabIndex = 5;
-            this.labelCurrentMatNumTitle.Text = "Current Mat Number:";
+            this.textBoxLog.Location = new System.Drawing.Point(30, 270);
+            this.textBoxLog.Multiline = true;
+            this.textBoxLog.Name = "textBoxLog";
+            this.textBoxLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBoxLog.Size = new System.Drawing.Size(510, 110);
+            this.textBoxLog.TabIndex = 5;
+            this.textBoxLog.ReadOnly = true;
 
             // 
             // labelCurrentMatNum
             // 
             this.labelCurrentMatNum.AutoSize = true;
-            this.labelCurrentMatNum.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.labelCurrentMatNum.ForeColor = System.Drawing.Color.DarkBlue;
-            this.labelCurrentMatNum.Location = new System.Drawing.Point(220, 250);
+            this.labelCurrentMatNum.Location = new System.Drawing.Point(30, 230);
             this.labelCurrentMatNum.Name = "labelCurrentMatNum";
-            this.labelCurrentMatNum.Size = new System.Drawing.Size(60, 23);
+            this.labelCurrentMatNum.Size = new System.Drawing.Size(230, 23);
             this.labelCurrentMatNum.TabIndex = 6;
-            this.labelCurrentMatNum.Text = "N/A";
+            this.labelCurrentMatNum.Text = "";
 
             // 
             // Form1
             // 
             this.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.ClientSize = new System.Drawing.Size(600, 300);
-            this.Controls.Add(this.labelTitle);
+            this.ClientSize = new System.Drawing.Size(580, 410);
+            this.Controls.Add(this.Title);
             this.Controls.Add(this.buttonConnect);
             this.Controls.Add(this.comboBoxPorts);
             this.Controls.Add(this.labelPort);
             this.Controls.Add(this.textBoxInput);
             this.Controls.Add(this.buttonSend);
-            this.Controls.Add(this.labelCurrentMatNumTitle);
+            this.Controls.Add(this.textBoxLog);
             this.Controls.Add(this.labelCurrentMatNum);
             this.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.Name = "Form1";
@@ -138,8 +137,8 @@
         private System.Windows.Forms.ComboBox comboBoxPorts;
         private System.Windows.Forms.Button buttonConnect;
         private System.Windows.Forms.Label labelPort;
-        private System.Windows.Forms.Label labelTitle;
-        private System.Windows.Forms.Label labelCurrentMatNumTitle;
+        private System.Windows.Forms.Label Title;
+        private System.Windows.Forms.TextBox textBoxLog;
         private System.Windows.Forms.Label labelCurrentMatNum;
     }
 }

@@ -9,7 +9,6 @@ namespace MatNumUpdater
     {
         private SerialPort serialPort;
         private string currentMatNum = "";
-        private string lastSentMatNum = "";
 
         public Form1()
         {
@@ -35,6 +34,7 @@ namespace MatNumUpdater
                 serialPort.Close();
                 buttonConnect.Text = "Connect";
                 comboBoxPorts.Enabled = true;
+                //labelCurrentMatNum.Visible = true;
             }
             else
             {
@@ -46,6 +46,7 @@ namespace MatNumUpdater
                     serialPort.Open();
                     buttonConnect.Text = "Disconnect";
                     comboBoxPorts.Enabled = false;
+                    //labelCurrentMatNum.Visible = false;
                 }
                 catch (Exception ex)
                 {
@@ -58,24 +59,25 @@ namespace MatNumUpdater
         {
             if (serialPort.IsOpen)
             {
-                string text = textBoxInput.Text.Trim();
+                string text = textBoxInput.Text;
                 if (!string.IsNullOrWhiteSpace(text))
                 {
                     try
                     {
-                        lastSentMatNum = text;
                         string messageToSend = "MatNum," + text;
                         serialPort.WriteLine(messageToSend);
+                        AppendLog("Sent: " + messageToSend);
                         textBoxInput.Clear();
                     }
                     catch (Exception ex)
                     {
+                        AppendLog("Error while sending: " + ex.Message);
                         MessageBox.Show("Error while sending: " + ex.Message);
                     }
                 }
                 else
                 {
-                    MessageBox.Show("Please enter MatNum to send.");
+                    MessageBox.Show("Please enter text to send.");
                 }
             }
             else
@@ -94,27 +96,49 @@ namespace MatNumUpdater
                 {
                     string matNum = line.Substring("MatNum,".Length);
                     currentMatNum = matNum;
-                    this.Invoke((MethodInvoker)(() => {
+
+                    this.Invoke((MethodInvoker)(() =>
+                    {
                         labelCurrentMatNum.Text = $"Current MatNum: {matNum}";
                     }));
                 }
                 else if (line.StartsWith("MatNum Updated:"))
                 {
                     string updated = line.Substring("MatNum Updated:".Length).Trim();
+
                     this.Invoke((MethodInvoker)(() =>
                     {
                         MessageBox.Show($"MatNum was successfully updated to: {updated}", "Update Successful");
+                        textBoxLog.AppendText("✅ Update successful: " + updated + Environment.NewLine);
                     }));
                 }
-                else if (line.StartsWith("MatNum Save Failed"))
+                else if (line.StartsWith("MatNum Update Failed"))
                 {
                     this.Invoke((MethodInvoker)(() =>
                     {
                         MessageBox.Show("MatNum update failed!", "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        textBoxLog.AppendText("❌ Update failed" + Environment.NewLine);
                     }));
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                //this.Invoke((MethodInvoker)(() =>
+                //{
+                //    textBoxLog.AppendText("⚠ Error reading data: " + ex.Message + Environment.NewLine);
+                //}));
+            }
+        }
+
+        private void AppendLog(string msg)
+        {
+            if (textBoxLog.InvokeRequired)
+            {
+                textBoxLog.Invoke(new Action(() => AppendLog(msg)));
+                return;
+            }
+
+            textBoxLog.AppendText($"[{DateTime.Now:HH:mm:ss}] {msg}\r\n");
         }
     }
 }

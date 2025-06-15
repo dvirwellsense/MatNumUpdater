@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Form1.cs
+using System;
 using System.IO.Ports;
 using System.Windows.Forms;
 
@@ -14,6 +8,9 @@ namespace MatNumUpdater
     public partial class Form1 : Form
     {
         private SerialPort serialPort;
+        private string currentMatNum = "";
+        private string lastSentMatNum = "";
+
         public Form1()
         {
             InitializeComponent();
@@ -34,6 +31,7 @@ namespace MatNumUpdater
         {
             if (serialPort.IsOpen)
             {
+                serialPort.DataReceived -= serialPort_DataReceived;
                 serialPort.Close();
                 buttonConnect.Text = "Connect";
                 comboBoxPorts.Enabled = true;
@@ -43,7 +41,8 @@ namespace MatNumUpdater
                 try
                 {
                     serialPort.PortName = comboBoxPorts.Text;
-                    serialPort.BaudRate = 9600; // adjust if needed
+                    serialPort.BaudRate = 9600;
+                    serialPort.DataReceived += serialPort_DataReceived;
                     serialPort.Open();
                     buttonConnect.Text = "Disconnect";
                     comboBoxPorts.Enabled = false;
@@ -55,17 +54,18 @@ namespace MatNumUpdater
             }
         }
 
-        private void buttonSend_Click_1(object sender, EventArgs e)
+        private void buttonSend_Click(object sender, EventArgs e)
         {
             if (serialPort.IsOpen)
             {
-                string text = textBoxInput.Text;
+                string text = textBoxInput.Text.Trim();
                 if (!string.IsNullOrWhiteSpace(text))
                 {
                     try
                     {
+                        lastSentMatNum = text;
                         string messageToSend = "MatNum," + text;
-                        serialPort.Write(messageToSend);
+                        serialPort.WriteLine(messageToSend);
                         textBoxInput.Clear();
                     }
                     catch (Exception ex)
@@ -75,13 +75,46 @@ namespace MatNumUpdater
                 }
                 else
                 {
-                    MessageBox.Show("Please enter text to send.");
+                    MessageBox.Show("Please enter MatNum to send.");
                 }
             }
             else
             {
                 MessageBox.Show("Please connect to UART first.");
             }
+        }
+
+        private void serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            try
+            {
+                string line = serialPort.ReadLine().Trim();
+
+                if (line.StartsWith("MatNum,"))
+                {
+                    string matNum = line.Substring("MatNum,".Length);
+                    currentMatNum = matNum;
+                    this.Invoke((MethodInvoker)(() => {
+                        labelCurrentMatNum.Text = $"Current MatNum: {matNum}";
+                    }));
+                }
+                else if (line.StartsWith("MatNum Updated:"))
+                {
+                    string updated = line.Substring("MatNum Updated:".Length).Trim();
+                    this.Invoke((MethodInvoker)(() =>
+                    {
+                        MessageBox.Show($"MatNum was successfully updated to: {updated}", "Update Successful");
+                    }));
+                }
+                else if (line.StartsWith("MatNum Save Failed"))
+                {
+                    this.Invoke((MethodInvoker)(() =>
+                    {
+                        MessageBox.Show("MatNum update failed!", "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }));
+                }
+            }
+            catch { }
         }
     }
 }

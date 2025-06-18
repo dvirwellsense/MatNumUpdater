@@ -38,6 +38,7 @@ namespace MatNumUpdater
                 serialPort.DataReceived -= serialPort_DataReceived;
                 serialPort.Close();
                 buttonConnect.Text = "Connect";
+                buttonConnect.BackColor = Color.Red;
                 comboBoxPorts.Enabled = true;
                 labelCurrentMatNum.Visible = false;
                 AppendLog("Disconnected.");
@@ -51,6 +52,7 @@ namespace MatNumUpdater
                     serialPort.DataReceived += serialPort_DataReceived;
                     serialPort.Open();
                     buttonConnect.Text = "Disconnect";
+                    buttonConnect.BackColor = Color.Green;
                     comboBoxPorts.Enabled = false;
                     labelCurrentMatNum.Visible = true;
                     AppendLog("Connected to " + serialPort.PortName);
@@ -62,6 +64,7 @@ namespace MatNumUpdater
             }
         }
 
+
         private void buttonSend_Click(object sender, EventArgs e)
         {
             if (serialPort.IsOpen)
@@ -71,7 +74,8 @@ namespace MatNumUpdater
                 {
                     try
                     {
-                        string messageToSend = "MatNum," + text;
+                        string date = DateTime.Now.ToString("yyyy-MM-dd");
+                        string messageToSend = $"MatNum,{text},{date}";
                         serialPort.WriteLine(messageToSend);
                         AppendLog("Sent: " + messageToSend);
                         textBoxInput.Clear();
@@ -94,6 +98,7 @@ namespace MatNumUpdater
             }
         }
 
+
         private void serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
@@ -102,7 +107,6 @@ namespace MatNumUpdater
 
                 this.Invoke((MethodInvoker)(() =>
                 {
-
                     if (line.StartsWith("MatNum,"))
                     {
                         string matNum = line.Substring("MatNum,".Length);
@@ -114,16 +118,43 @@ namespace MatNumUpdater
                         string updated = line.Substring("MatNum Updated:".Length).Trim();
                         MessageBox.Show($"MatNum was successfully updated to: {updated}", "Update Successful");
                         textBoxLog.AppendText("✅ Update successful: " + updated + Environment.NewLine);
+
+                        // Request latest saved MatNum + Date after update
+                        serialPort.WriteLine("DateMatNum");
+                        AppendLog("Sent: DateMatNum");
                     }
                     else if (line.StartsWith("MatNum Update Failed"))
                     {
                         MessageBox.Show("MatNum update failed!", "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         textBoxLog.AppendText("❌ Update failed" + Environment.NewLine);
                     }
+                    else if (line.StartsWith("MatNum:") && line.Contains("Date:"))
+                    {
+                        string[] parts = line.Split(',');
+
+                        if (parts.Length == 2)
+                        {
+                            string mat = parts[0].Replace("MatNum:", "").Trim();
+                            string date = parts[1].Replace("Date:", "").Trim();
+
+                            if (string.IsNullOrEmpty(mat) && string.IsNullOrEmpty(date))
+                            {
+                                labelCurrentMatNum.Text = "No stored MatNum data.";
+                                AppendLog("⚠️ MatNum memory is empty.");
+                            }
+                            else
+                            {
+                                labelCurrentMatNum.Text = $"MatNum: {mat}, Date: {date}";
+                                AppendLog($"📦 Stored MatNum: {mat}, Date: {date}");
+                            }
+                        }
+                    }
                 }));
             }
             catch { }
         }
+
+
 
         private void AppendLog(string msg)
         {

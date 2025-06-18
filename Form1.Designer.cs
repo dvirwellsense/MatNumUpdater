@@ -58,7 +58,7 @@
             // 
             // buttonConnect
             // 
-            this.buttonConnect.BackColor = System.Drawing.Color.LightSteelBlue;
+            this.buttonConnect.BackColor = System.Drawing.Color.Red;
             this.buttonConnect.Location = new System.Drawing.Point(340, 70);
             this.buttonConnect.Name = "buttonConnect";
             this.buttonConnect.Size = new System.Drawing.Size(200, 35);

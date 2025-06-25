@@ -102,12 +102,15 @@
             // 
             // labelCurrentMatNum
             // 
-            this.labelCurrentMatNum.AutoSize = true;
+            //this.labelCurrentMatNum.AutoSize = true;
             this.labelCurrentMatNum.Location = new System.Drawing.Point(30, 230);
             this.labelCurrentMatNum.Name = "labelCurrentMatNum";
             this.labelCurrentMatNum.Size = new System.Drawing.Size(230, 23);
             this.labelCurrentMatNum.TabIndex = 6;
             this.labelCurrentMatNum.Text = "";
+            this.labelCurrentMatNum.AutoSize = false;
+            this.labelCurrentMatNum.Width = 500;
+            this.labelCurrentMatNum.Height = 30;
 
             // 
             // Form1

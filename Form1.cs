@@ -56,6 +56,9 @@ namespace MatNumUpdater
                     comboBoxPorts.Enabled = false;
                     labelCurrentMatNum.Visible = true;
                     AppendLog("Connected to " + serialPort.PortName);
+                    // Request latest saved MatNum + Date in the beginning
+                    serialPort.WriteLine("DateMatNum");
+                    AppendLog("Sent: DateMatNum");
                 }
                 catch (Exception ex)
                 {
@@ -76,7 +79,7 @@ namespace MatNumUpdater
                     {
                         string date = DateTime.Now.ToString("yyyy-MM-dd");
                         string messageToSend = $"MatNum,{text},{date}";
-                        serialPort.WriteLine(messageToSend);
+                        serialPort.Write(messageToSend);
                         AppendLog("Sent: " + messageToSend);
                         textBoxInput.Clear();
                         SetPlaceholder();
@@ -113,15 +116,14 @@ namespace MatNumUpdater
                         currentMatNum = matNum;
                         labelCurrentMatNum.Text = $"Current MatNum: {matNum}";
                     }
-                    else if (line.StartsWith("MatNum Updated:"))
+                    else if (line.StartsWith("Write Successful"))
                     {
-                        string updated = line.Substring("MatNum Updated:".Length).Trim();
-                        MessageBox.Show($"MatNum was successfully updated to: {updated}", "Update Successful");
-                        textBoxLog.AppendText("✅ Update successful: " + updated + Environment.NewLine);
+                        MessageBox.Show($"MatNum was successfully updated!", "Update Successful");
+                        textBoxLog.AppendText("✅ Update successful!" + Environment.NewLine);
 
-                        // Request latest saved MatNum + Date after update
-                        serialPort.WriteLine("DateMatNum");
-                        AppendLog("Sent: DateMatNum");
+                        //// Request latest saved MatNum + Date after update
+                        //serialPort.WriteLine("DateMatNum");
+                        //AppendLog("Sent: DateMatNum");
                     }
                     else if (line.StartsWith("MatNum Update Failed"))
                     {

@@ -92,8 +92,8 @@ namespace MatNumUpdater
                         SetPlaceholder();
                         serialPort.WriteLine("GetMatDate");
                         AppendLog("Sent: GetMatDate");
-                        serialPort.WriteLine("MatLifeTime");
-                        AppendLog("Sent: MatLifeTime");
+                        serialPort.WriteLine("MatLifeTime,0");
+                        AppendLog("Sent: MatLifeTime,0");
                     }
                     catch (Exception ex)
                     {

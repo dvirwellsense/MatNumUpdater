@@ -1,5 +1,5 @@
-﻿// Form1.cs
-using System;
+﻿using System;
+using System.IO;
 using System.Drawing;
 using System.IO.Ports;
 using System.Windows.Forms;
@@ -12,6 +12,8 @@ namespace MatNumUpdater
         private string currentMatNum = "";
         private string currentMatDate = "";
         private string placeholderText = "Enter MatNum (e.g. 1234AB)";
+        private string initialMatNum = "";
+        private bool waitingForNewMatNum = false;
 
         public Form1()
         {
@@ -59,6 +61,8 @@ namespace MatNumUpdater
                     AppendLog("Connected to " + serialPort.PortName);
                     // Request latest saved MatNum + Date in the beginning
                     serialPort.WriteLine("GetMatNum");
+                    initialMatNum = "";
+                    waitingForNewMatNum = false;
                     AppendLog("Sent: GetMatNum");
                     serialPort.WriteLine("GetMatDate");
                     AppendLog("Sent: GetMatDate");
@@ -83,6 +87,7 @@ namespace MatNumUpdater
                         buttonSend.Enabled = false;
                         string messageToSend = $"MatNum,{text}";
                         serialPort.WriteLine(messageToSend);
+                        waitingForNewMatNum = true;
                         AppendLog("Sent: " + messageToSend);
                         string date = DateTime.Now.ToString("yyyy-MM-dd");
                         messageToSend = $"MatDate,{date}";
@@ -126,10 +131,33 @@ namespace MatNumUpdater
                         string matNum = line.Substring("MatNum,".Length);
                         currentMatNum = matNum;
                         CurrentMatNumBox.Text = $"{matNum}";
+
+                        // for the firt time
+                        if (string.IsNullOrWhiteSpace(initialMatNum))
+                        {
+                            initialMatNum = matNum;
+                            AppendLog("Initial MatNum: " + matNum);
+                        }
+                        else if (waitingForNewMatNum)
+                        {
+                            waitingForNewMatNum = false;
+
+                            if (matNum != initialMatNum)
+                            {
+                                AppendLog("MatNum updated from " + initialMatNum + " to " + matNum);
+                                if (!string.IsNullOrWhiteSpace(currentMatDate))
+                                    SaveMatNumToCsv(matNum, currentMatDate);
+
+                                initialMatNum = matNum;
+                            }
+                            else
+                            {
+                                AppendLog("MatNum did not change.");
+                            }
+                        }
                     }
                     else if (line.StartsWith("Write Failed"))
                     {
-                        //MessageBox.Show("Mat data update failed!", "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         textBoxLog.AppendText("❌ Update failed" + Environment.NewLine);
                     }
                     else if (line.StartsWith("MatDate,"))
@@ -138,10 +166,12 @@ namespace MatNumUpdater
                         currentMatDate = matDate;
                         CurrentMatDateBox.Text = $"{matDate}";
                         buttonSend.Enabled = true;
+
+                        if (!string.IsNullOrWhiteSpace(currentMatNum))
+                            SaveMatNumToCsv(currentMatNum, matDate);
                     }
                     else if (line.Contains("Read Failed"))
                     {
-                        //MessageBox.Show("Mat data read failed!", "Read Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         textBoxLog.AppendText("❌ Read failed" + Environment.NewLine);
                     }
                 }));
@@ -149,6 +179,21 @@ namespace MatNumUpdater
             catch { }
         }
 
+
+        private void SaveMatNumToCsv(string matNum, string matDate)
+        {
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MatNumbersLog.csv");
+            bool fileExists = File.Exists(filePath);
+
+            using (var writer = new StreamWriter(filePath, append: true))
+            {
+                if (!fileExists)
+                {
+                    writer.WriteLine("Mat Number,Date Saved");
+                }
+                writer.WriteLine($"{matNum},{matDate}");
+            }
+        }
 
 
         private void AppendLog(string msg)
@@ -188,6 +233,12 @@ namespace MatNumUpdater
         private void textBoxInput_Leave(object sender, EventArgs e)
         {
             SetPlaceholder();
+        }
+
+        private void buttonRefreshPorts_Click(object sender, EventArgs e)
+        {
+            LoadAvailablePorts();
+            AppendLog("Ports refreshed.");
         }
     }
 }

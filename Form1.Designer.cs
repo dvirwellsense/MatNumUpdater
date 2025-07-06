@@ -27,6 +27,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.CurrentMatDateBox = new System.Windows.Forms.TextBox();
             this.buttonRefreshPorts = new System.Windows.Forms.Button();
+            this.buttonNewBoard = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // textBoxInput
@@ -58,7 +59,7 @@
             // buttonConnect
             // 
             this.buttonConnect.BackColor = System.Drawing.Color.Red;
-            this.buttonConnect.Location = new System.Drawing.Point(394, 70);
+            this.buttonConnect.Location = new System.Drawing.Point(394, 22);
             this.buttonConnect.Name = "buttonConnect";
             this.buttonConnect.Size = new System.Drawing.Size(200, 35);
             this.buttonConnect.TabIndex = 1;
@@ -91,8 +92,7 @@
             this.textBoxLog.Multiline = true;
             this.textBoxLog.Name = "textBoxLog";
             this.textBoxLog.ReadOnly = true;
-            this.textBoxLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxLog.Size = new System.Drawing.Size(564, 110);
+            this.textBoxLog.Size = new System.Drawing.Size(564, 41);
             this.textBoxLog.TabIndex = 5;
             // 
             // CurrentMatNumBox
@@ -129,7 +129,7 @@
             // 
             // buttonRefreshPorts
             // 
-            this.buttonRefreshPorts.Location = new System.Drawing.Point(326, 73);
+            this.buttonRefreshPorts.Location = new System.Drawing.Point(326, 71);
             this.buttonRefreshPorts.Name = "buttonRefreshPorts";
             this.buttonRefreshPorts.Size = new System.Drawing.Size(36, 33);
             this.buttonRefreshPorts.TabIndex = 0;
@@ -137,10 +137,21 @@
             this.buttonRefreshPorts.UseVisualStyleBackColor = true;
             this.buttonRefreshPorts.Click += new System.EventHandler(this.buttonRefreshPorts_Click);
             // 
+            // buttonNewBoard
+            // 
+            this.buttonNewBoard.Location = new System.Drawing.Point(394, 75);
+            this.buttonNewBoard.Name = "buttonNewBoard";
+            this.buttonNewBoard.Size = new System.Drawing.Size(199, 31);
+            this.buttonNewBoard.TabIndex = 10;
+            this.buttonNewBoard.Text = "New Board";
+            this.buttonNewBoard.UseVisualStyleBackColor = true;
+            this.buttonNewBoard.Click += new System.EventHandler(this.buttonNewBoard_Click);
+            // 
             // Form1
             // 
             this.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.ClientSize = new System.Drawing.Size(624, 410);
+            this.ClientSize = new System.Drawing.Size(624, 323);
+            this.Controls.Add(this.buttonNewBoard);
             this.Controls.Add(this.buttonRefreshPorts);
             this.Controls.Add(this.CurrentMatDateBox);
             this.Controls.Add(this.label2);
@@ -162,6 +173,25 @@
 
         }
 
+        private void InitializeTooltips()
+        {
+            toolTip1.AutoPopDelay = 5000;
+            toolTip1.InitialDelay = 1000;
+            toolTip1.ReshowDelay = 500;
+            toolTip1.ShowAlways = true;
+
+            toolTip1.SetToolTip(buttonConnect, "Connect to the board using the selected COM port");
+            toolTip1.SetToolTip(buttonRefreshPorts, "Refresh the list of available COM ports");
+            toolTip1.SetToolTip(buttonNewBoard, "Press after connecting a new board to retrieve its current values");
+            toolTip1.SetToolTip(buttonSend, "Send the new MatNum and current date to the board. This also resets its lifetime");
+            toolTip1.SetToolTip(textBoxInput, "Enter the new MatNum string to be sent to the board");
+            toolTip1.SetToolTip(comboBoxPorts, "Select the COM port connected to the board");
+            toolTip1.SetToolTip(CurrentMatNumBox, "The current MatNum read from the board");
+            toolTip1.SetToolTip(CurrentMatDateBox, "The current burning date read from the board");
+            toolTip1.SetToolTip(textBoxLog, "Logs of communication with the board will appear here");
+        }
+
+
         #endregion
 
         private System.Windows.Forms.TextBox textBoxInput;
@@ -176,5 +206,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox CurrentMatDateBox;
         private System.Windows.Forms.Button buttonRefreshPorts;
+        private System.Windows.Forms.Button buttonNewBoard;
     }
 }

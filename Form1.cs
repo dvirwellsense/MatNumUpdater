@@ -3,6 +3,7 @@ using System.IO;
 using System.Drawing;
 using System.IO.Ports;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace MatNumUpdater
 {
@@ -38,7 +39,7 @@ namespace MatNumUpdater
                 comboBoxPorts.SelectedIndex = 0;
         }
 
-        private void buttonConnect_Click(object sender, EventArgs e)
+        private async void buttonConnect_Click(object sender, EventArgs e)
         {
             if (serialPort.IsOpen)
             {
@@ -102,6 +103,7 @@ namespace MatNumUpdater
                         SetPlaceholder();
                         serialPort.WriteLine("GetMatDate");
                         serialPort.Write("MatLifeTime,0");
+                        serialPort.Write("MatActiveTime,0");
                     }
                     catch (Exception ex)
                     {

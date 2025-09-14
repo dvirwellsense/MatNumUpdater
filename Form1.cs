@@ -104,6 +104,8 @@ namespace MatNumUpdater
                         serialPort.WriteLine("GetMatDate");
                         serialPort.Write("MatLifeTime,0");
                         serialPort.Write("MatActiveTime,0");
+                        serialPort.Write("ActiveRows,01,60");
+                        serialPort.Write("ActiveColumns,01,30");
                     }
                     catch (Exception ex)
                     {

@@ -3,7 +3,6 @@ using System.IO;
 using System.Drawing;
 using System.IO.Ports;
 using System.Windows.Forms;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MatNumUpdater
@@ -23,12 +22,17 @@ namespace MatNumUpdater
         public Form1()
         {
             InitializeComponent();
-            InitializeTooltips();
             serialPort = new SerialPort();
             LoadAvailablePorts();
             SetPlaceholder();
             textBoxInput.Enter += textBoxInput_Enter;
             textBoxInput.Leave += textBoxInput_Leave;
+
+            // Set default ActiveRows / ActiveColumns
+            textBoxRowStart.Text = "01";
+            textBoxRowEnd.Text = "60";
+            textBoxColStart.Text = "01";
+            textBoxColEnd.Text = "30";
         }
 
         private void LoadAvailablePorts()
@@ -65,15 +69,14 @@ namespace MatNumUpdater
                     comboBoxPorts.Enabled = false;
                     CurrentMatNumBox.Visible = true;
                     AppendLog("Connected to " + serialPort.PortName);
+
                     // Request latest saved MatNum + Date in the beginning
                     expectingInitialMatNum = true;
                     serialPort.WriteLine("GetMatNum");
                     initialMatNum = "";
                     waitingForNewMatNum = false;
                     eeprom_communicate = true;
-                    //AppendLog("Sent: GetMatNum");
                     serialPort.WriteLine("GetMatDate");
-                    //AppendLog("Sent: GetMatDate");
                 }
                 catch (Exception ex)
                 {
@@ -82,124 +85,128 @@ namespace MatNumUpdater
             }
         }
 
-
         private async void buttonSend_Click(object sender, EventArgs e)
-
         {
-            if (serialPort.IsOpen)
-            {
-                string text = textBoxInput.Text.Trim();
-                if (!string.IsNullOrWhiteSpace(text) && text != placeholderText)
-                {
-                    try
-                    {
-                        buttonSend.Enabled = false;
-                        string messageToSend = $"MatNum,{text}";
-                        serialPort.Write(messageToSend);
-                        waitingForNewMatNum = true;
-                        eeprom_communicate = true;
-                        string date = DateTime.Now.ToString("yyyy-MM-dd");
-                        messageToSend = $"MatDate,{date}";
-                        serialPort.Write(messageToSend);
-                        textBoxInput.Clear();
-                        SetPlaceholder();
-                        serialPort.WriteLine("GetMatDate");
-                        await Task.Delay(40);
-                        serialPort.Write("ActiveRows,01,60");
-                        await Task.Delay(40);
-                        serialPort.Write("ActiveColumns,01,30");
-                        await Task.Delay(40);
-                        serialPort.Write("MatLifeTime,0");
-                        await Task.Delay(40);
-                        serialPort.Write("MatActiveTime,0");
-                        await Task.Delay(40);
-                    }
-                    catch (Exception ex)
-                    {
-                        AppendLog("Error while sending: " + ex.Message);
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Please enter a valid MatNum.");
-                }
-            }
-            else
+            if (!serialPort.IsOpen)
             {
                 MessageBox.Show("Please connect to UART first.");
+                return;
+            }
+
+            string text = textBoxInput.Text.Trim();
+            if (string.IsNullOrWhiteSpace(text) || text == placeholderText)
+            {
+                MessageBox.Show("Please enter a valid MatNum.");
+                return;
+            }
+
+            try
+            {
+                buttonSend.Enabled = false;
+
+                // Send MatNum
+                string messageToSend = $"MatNum,{text}";
+                //serialPort.Write(messageToSend);
+                await SendCommandAsync(messageToSend);
+                waitingForNewMatNum = true;
+                eeprom_communicate = true;
+
+                // Send MatDate
+                string date = DateTime.Now.ToString("yyyy-MM-dd");
+                messageToSend = $"MatDate,{date}";
+                //serialPort.Write(messageToSend);
+                await SendCommandAsync(messageToSend);
+
+                textBoxInput.Clear();
+                SetPlaceholder();
+
+                // Send ActiveRows / ActiveColumns / MatLifeTime / MatActiveTime
+                await SendCommandAsync($"ActiveRows,{textBoxRowStart.Text},{textBoxRowEnd.Text}");
+                await SendCommandAsync($"ActiveColumns,{textBoxColStart.Text},{textBoxColEnd.Text}");
+                await SendCommandAsync("MatLifeTime,0");
+                await SendCommandAsync("MatActiveTime,0");
+            }
+            catch (Exception ex)
+            {
+                AppendLog("Error while sending: " + ex.Message);
             }
         }
 
+        private async Task SendCommandAsync(string command)
+        {
+            try
+            {
+                if (serialPort.IsOpen)
+                {
+                    serialPort.Write(command);
+                    await Task.Delay(40);
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog("Error sending command: " + ex.Message);
+            }
+        }
 
         private void serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
             {
                 string line = serialPort.ReadLine().Trim();
-
-                this.Invoke((MethodInvoker)(() =>
+                this.BeginInvoke((MethodInvoker)(() =>
                 {
                     if (line.StartsWith("MatNum,"))
-                    {
-                        string matNum = line.Substring("MatNum,".Length);
-                        currentMatNum = matNum;
-                        CurrentMatNumBox.Text = $"{matNum}";
-
-                        if (expectingInitialMatNum)
-                        {
-                            initialMatNum = matNum;
-                            expectingInitialMatNum = false;
-                            AppendLog("Initial MatNum read: " + matNum);
-                        }
-                        else if (waitingForNewMatNum)
-                        {
-                            if (matNum != initialMatNum)
-                            {
-                                waitingForNewMatNum = false;
-
-                                if (!string.IsNullOrWhiteSpace(matNum) && matNum != "0")
-                                {
-                                    AppendLog("MatNum updated from " + initialMatNum + " to " + matNum);
-                                    SaveMatNumToCsv(matNum, currentMatDate);
-                                }
-                                initialMatNum = matNum;
-                            }
-                            else
-                            {
-                                // MatNum did not change
-                            }
-                        }
-                    }
-
+                        HandleMatNum(line.Substring("MatNum,".Length));
                     else if (line.StartsWith("MatDate,"))
-                    {
-                        string matDate = line.Substring("MatDate,".Length);
-                        currentMatDate = matDate;
-                        CurrentMatDateBox.Text = $"{matDate}";
-                        buttonSend.Enabled = true;
-                    }
-                    else if (line.StartsWith("Write Failed"))
+                        HandleMatDate(line.Substring("MatDate,".Length));
+                    else if (line.Contains("Write Failed") || line.Contains("Read Failed"))
                     {
                         if (eeprom_communicate)
                         {
-                            textBoxLog.AppendText("❌ Failed to communicate with the EEPROM memory" + Environment.NewLine);
-                            eeprom_communicate = false;
-                        }
-                    }
-                    
-                    else if (line.Contains("Read Failed"))
-                    {
-                        if (eeprom_communicate)
-                        {
-                            textBoxLog.AppendText("❌ Failed to communicate with the EEPROM memory" + Environment.NewLine);
+                            AppendLog("❌ Failed to communicate with the EEPROM memory");
                             eeprom_communicate = false;
                         }
                     }
                 }));
             }
-            catch { }
+            catch (Exception ex)
+            {
+                AppendLog("UART Error: " + ex.Message);
+            }
         }
 
+        private void HandleMatNum(string matNum)
+        {
+            currentMatNum = matNum;
+            CurrentMatNumBox.Text = matNum;
+
+            if (expectingInitialMatNum)
+            {
+                initialMatNum = matNum;
+                expectingInitialMatNum = false;
+                AppendLog("Initial MatNum read: " + matNum);
+            }
+            else if (waitingForNewMatNum)
+            {
+                if (currentMatNum != initialMatNum)
+                {
+                    waitingForNewMatNum = false;
+                    buttonSend.Enabled = true;
+                    if (!string.IsNullOrWhiteSpace(matNum) && matNum != "0")
+                    {
+                        AppendLog($"MatNum updated from {initialMatNum} to {matNum}");
+                        SaveMatNumToCsv(matNum, currentMatDate);
+                    }
+                    initialMatNum = matNum;
+                }
+            }
+        }
+
+        private void HandleMatDate(string matDate)
+        {
+            currentMatDate = matDate;
+            CurrentMatDateBox.Text = matDate;
+        }
 
         private void SaveMatNumToCsv(string matNum, string matDate)
         {
@@ -215,7 +222,6 @@ namespace MatNumUpdater
                 writer.WriteLine($"{matNum},{matDate}");
             }
         }
-
 
         private void AppendLog(string msg)
         {
@@ -246,41 +252,30 @@ namespace MatNumUpdater
             }
         }
 
-        private void textBoxInput_Enter(object sender, EventArgs e)
-        {
-            RemovePlaceholder();
-        }
+        private void textBoxInput_Enter(object sender, EventArgs e) => RemovePlaceholder();
+        private void textBoxInput_Leave(object sender, EventArgs e) => SetPlaceholder();
 
-        private void textBoxInput_Leave(object sender, EventArgs e)
-        {
-            SetPlaceholder();
-        }
-
-        private void buttonRefreshPorts_Click(object sender, EventArgs e)
-        {
-            LoadAvailablePorts();
-            //AppendLog("Ports refreshed.");
-        }
+        private void buttonRefreshPorts_Click(object sender, EventArgs e) => LoadAvailablePorts();
 
         private void buttonNewBoard_Click(object sender, EventArgs e)
         {
-            if (serialPort.IsOpen)
-            {
-                initialMatNum = "";
-                currentMatNum = "";
-                currentMatDate = "";
-                waitingForNewMatNum = false;
-                eeprom_communicate = true;
-                expectingInitialMatNum = true;
-                serialPort.WriteLine("GetMatNum");
-                serialPort.WriteLine("GetMatDate");
-
-                AppendLog("New board inserted – refreshing data.");
-            }
-            else
+            if (!serialPort.IsOpen)
             {
                 MessageBox.Show("Please connect to UART first.");
+                return;
             }
+
+            initialMatNum = "";
+            currentMatNum = "";
+            currentMatDate = "";
+            waitingForNewMatNum = false;
+            eeprom_communicate = true;
+            expectingInitialMatNum = true;
+            buttonSend.Enabled = true;
+            serialPort.WriteLine("GetMatNum");
+            serialPort.WriteLine("GetMatDate");
+
+            AppendLog("New board inserted – refreshing data.");
         }
     }
 }

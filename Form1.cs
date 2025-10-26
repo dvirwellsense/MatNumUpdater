@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO.Ports;
 using System.Windows.Forms;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MatNumUpdater
 {
@@ -82,7 +83,8 @@ namespace MatNumUpdater
         }
 
 
-        private void buttonSend_Click(object sender, EventArgs e)
+        private async void buttonSend_Click(object sender, EventArgs e)
+
         {
             if (serialPort.IsOpen)
             {
@@ -102,10 +104,15 @@ namespace MatNumUpdater
                         textBoxInput.Clear();
                         SetPlaceholder();
                         serialPort.WriteLine("GetMatDate");
-                        serialPort.Write("MatLifeTime,0");
-                        serialPort.Write("MatActiveTime,0");
+                        await Task.Delay(40);
                         serialPort.Write("ActiveRows,01,60");
+                        await Task.Delay(40);
                         serialPort.Write("ActiveColumns,01,30");
+                        await Task.Delay(40);
+                        serialPort.Write("MatLifeTime,0");
+                        await Task.Delay(40);
+                        serialPort.Write("MatActiveTime,0");
+                        await Task.Delay(40);
                     }
                     catch (Exception ex)
                     {
@@ -259,10 +266,6 @@ namespace MatNumUpdater
         {
             if (serialPort.IsOpen)
             {
-                //initialMatNum = "";
-                //waitingForNewMatNum = false;
-                //eeprom_communicate = true;
-
                 initialMatNum = "";
                 currentMatNum = "";
                 currentMatDate = "";

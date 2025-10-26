@@ -48,6 +48,7 @@
             this.buttonSend.Text = "Send MatNum";
             this.buttonSend.UseVisualStyleBackColor = false;
             this.buttonSend.Click += new System.EventHandler(this.buttonSend_Click);
+
             // 
             // comboBoxPorts
             // 
